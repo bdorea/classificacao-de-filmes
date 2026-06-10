@@ -10,12 +10,12 @@ export function gerarMediaDeNotas(listaFilmes){
     let notasAcumuladas = 0;
     let quantidadeNotasValidas = 0
 
-    for(let i = 0; i < listaFilmes.length; i++){
-        if(listaFilmes[i].nota !== null){
-            notasAcumuladas = notasAcumuladas + listaFilmes[i].nota
+    listaFilmes.forEach((elemento)=>{
+        if(elemento.nota !== null){
+            notasAcumuladas = notasAcumuladas + elemento.nota
             quantidadeNotasValidas++
-        } 
-    }
+        }
+    })
 
     return notasAcumuladas/quantidadeNotasValidas
 }
