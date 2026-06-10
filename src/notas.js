@@ -1,4 +1,3 @@
-
 export function gerarMediaDeNotas(listaFilmes){
     if(listaFilmes == null){
         return 'Não foi possível calcular a média pois a lista está nula'
@@ -15,14 +14,8 @@ export function gerarMediaDeNotas(listaFilmes){
         if(listaFilmes[i].nota !== null){
             notasAcumuladas = notasAcumuladas + listaFilmes[i].nota
             quantidadeNotasValidas++
-        }
-            
+        } 
     }
-
-    // listaFilmes.forEach((element, index) => {
-    //     console.log(`Estou na iteração de numero ${index}`)
-    //     notasAcumuladas = notasAcumuladas + element.nota
-    // });
 
     return notasAcumuladas/quantidadeNotasValidas
 }
