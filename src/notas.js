@@ -9,9 +9,14 @@ export function gerarMediaDeNotas(listaFilmes){
     }
 
     let notasAcumuladas = 0;
+    let quantidadeNotasValidas = 0
 
     for(let i = 0; i < listaFilmes.length; i++){
-        notasAcumuladas = notasAcumuladas + listaFilmes[i].nota
+        if(listaFilmes[i].nota !== null){
+            notasAcumuladas = notasAcumuladas + listaFilmes[i].nota
+            quantidadeNotasValidas++
+        }
+            
     }
 
     // listaFilmes.forEach((element, index) => {
@@ -19,5 +24,5 @@ export function gerarMediaDeNotas(listaFilmes){
     //     notasAcumuladas = notasAcumuladas + element.nota
     // });
 
-    return notasAcumuladas/listaFilmes.length
+    return notasAcumuladas/quantidadeNotasValidas
 }
