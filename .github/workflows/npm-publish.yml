@@ -16,6 +16,6 @@ jobs:
           with:
             node-version: 22
         - run: npm ci
-        - run: npx mocha
+        - run: npm test
       
  
