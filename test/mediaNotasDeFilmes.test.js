@@ -1,5 +1,5 @@
 import {assert} from 'chai';
-import {gerarMediaDeNotas} from '../src/notas.js'
+import {gerarMediaDeNotas, verificarQuantidadeDeNotas} from '../src/notas.js'
 
 describe('Notas de Filmes', ()=>{
     describe('Média de notas', ()=>{
@@ -57,6 +57,56 @@ describe('Notas de Filmes', ()=>{
             
             //Assert
             assert.equal(resultadoEsperado, resultadoObtido, `O resultado esperado ${resultadoEsperado} é diferente do obtido ${resultadoObtido}`)
+        })
+    })
+
+    describe('Pesquisa de Notas', ()=>{
+        it('CT01 - Todas as notas são 10 deve retornar 3 notas encontradas', ()=>{
+            //Arrange
+            const listaFilmes = [
+                {nomeFilme: 'Matrix', nota: 10}, 
+                {nomeFilme: 'Matrix', nota: 10}, 
+                {nomeFilme: 'Matrix', nota: 10}
+            ]
+            const resultadoEsperado = 3
+            
+            //Act
+            const resultadoObtido = verificarQuantidadeDeNotas(10, listaFilmes)
+            
+            //Assert
+            assert.equal(resultadoEsperado, resultadoObtido, 'O resultado esperado é diferente do obtido')
+        })
+
+        it('CT02 - Pesquisar por nota 10 deve retornar 2 notas encontradas', ()=>{
+            //Arrange
+            const listaFilmes = [
+                {nomeFilme: 'Matrix', nota: 10}, 
+                {nomeFilme: 'Matrix', nota: 10}, 
+                {nomeFilme: 'Matrix', nota: 9}
+            ]
+            const resultadoEsperado = 2
+            
+            //Act
+            const resultadoObtido = verificarQuantidadeDeNotas(10, listaFilmes)
+            
+            //Assert
+            assert.equal(resultadoEsperado, resultadoObtido, 'O resultado esperado é diferente do obtido')
+        })
+
+        it('CT03 - Pesquisar por nota 0 deve retornar 0 notas encontradas', ()=>{
+            //Arrange
+            const listaFilmes = [
+                {nomeFilme: 'Matrix', nota: 10}, 
+                {nomeFilme: 'Matrix', nota: 10}, 
+                {nomeFilme: 'Matrix', nota: 10}
+            ]
+            const resultadoEsperado = 0
+            
+            //Act
+            const resultadoObtido = verificarQuantidadeDeNotas(0, listaFilmes)
+            
+            //Assert
+            assert.equal(resultadoEsperado, resultadoObtido, 'O resultado esperado é diferente do obtido')
         })
     })
 })

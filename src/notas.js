@@ -19,3 +19,16 @@ export function gerarMediaDeNotas(listaFilmes){
 
     return notasAcumuladas/quantidadeNotasValidas
 }
+
+export const verificarQuantidadeDeNotas = (notaPesquisada, listaNotas) => {
+    
+    let quantidadeNotasEncontradas = 0
+
+    listaNotas.forEach((elemento)=>{
+        if(elemento.nota === notaPesquisada){
+            quantidadeNotasEncontradas++
+        }
+    })
+
+    return quantidadeNotasEncontradas
+}
