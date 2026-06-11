@@ -19,3 +19,8 @@ export function gerarMediaDeNotas(listaFilmes){
 
     return notasAcumuladas/quantidadeNotasValidas
 }
+
+export const verificarQuantidadeDeNotas = (notaPesquisada, listaNotas) => {
+    let novaListaApenasComNotaPesquisada = listaNotas.filter((elemento) => elemento.nota === notaPesquisada)
+    return novaListaApenasComNotaPesquisada.length
+}
