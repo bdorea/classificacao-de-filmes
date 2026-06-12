@@ -31,45 +31,14 @@ jobs:
       run: npm ci
 
     - name: 🧪 Executar testes com Mocha
-      run: npm test -- --reporter json > test-report.json
+      id: test
+      run: npm test
       continue-on-error: true
 
-    - name: 📊 Gerar relatório de testes legível
+    - name: 📊 Gerar relatório de testes
       if: always()
-      run: npm test -- --reporter spec > test-report.txt
+      run: npm test -- --reporter spec > test-report.txt 2>&1
       continue-on-error: true
-
-    - name: 📄 Processar relatório JSON
-      if: always()
-      continue-on-error: true
-      run: |
-        if [ -f test-report.json ] && [ -s test-report.json ]; then
-          echo "## Relatório de Testes" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          jq -r '.tests[] | "- [\(.fullTitle)] (\(.duration)ms)"' test-report.json >> $GITHUB_STEP_SUMMARY || echo "Erro ao processar JSON" >> $GITHUB_STEP_SUMMARY
-        fi
-
-    - name: 🔍 Debug - Verificar arquivo JSON
-      if: always()
-      continue-on-error: true
-      run: |
-        echo "Verificando arquivo JSON..."
-        if [ -f test-report.json ]; then
-          echo "✅ Arquivo existe"
-          wc -c test-report.json
-          echo "Primeiras linhas:"
-          head -5 test-report.json
-        else
-          echo "❌ Arquivo NÃO existe"
-        fi
-
-    - name: 📤 Upload do relatório JSON
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-report-json-node-${{ matrix.node-version }}
-        path: test-report.json
-        retention-days: 30
 
     - name: 📤 Upload do relatório legível
       if: always()
@@ -81,20 +50,12 @@ jobs:
 
     - name: ✅ Verificar status dos testes
       if: always()
-      continue-on-error: true
       run: |
-        if [ -f test-report.json ] && [ -s test-report.json ]; then
-          FAILURES=$(jq '.stats.failures // 0' test-report.json 2>/dev/null || echo "0")
-          PASSES=$(jq '.stats.passes // 0' test-report.json 2>/dev/null || echo "0")
-          echo "Testes: Sucessos=$PASSES, Falhas=$FAILURES"
-          if [ "$FAILURES" = "0" ] && [ "$PASSES" -gt "0" ]; then
-            echo "✅ Todos os testes passaram! ($PASSES sucessos)"
-          else
-            echo "❌ Testes falharam! Falhas: $FAILURES"
-            exit 1
-          fi
+        if [ "${{ steps.test.outcome }}" = "success" ]; then
+          echo "✅ Todos os testes passaram!"
         else
-          echo "⚠️ Arquivo de teste não gerado, mas continuando..."
+          echo "❌ Alguns testes falharam!"
+          exit 1
         fi
 
     - name: 🔔 Notificar sucesso
