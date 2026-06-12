@@ -31,21 +31,25 @@ jobs:
       run: npm ci
 
     - name: 🧪 Executar testes com Mocha
-      run: npm test -- --reporter json > test-report.json 2>&1
+      run: npm test -- --reporter json > test-report.json
       continue-on-error: true
 
     - name: 📊 Gerar relatório de testes legível
       if: always()
-      run: npm test -- --reporter spec > test-report.txt 2>&1
+      run: npm test -- --reporter spec > test-report.txt
       continue-on-error: true
 
     - name: 📄 Processar relatório JSON
       if: always()
       run: |
-        if [ -f test-report.json ]; then
+        if [ -f test-report.json ] && [ -s test-report.json ]; then
           echo "## Relatório de Testes" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          cat test-report.json | jq -r '.tests[] | "- [\(.fullTitle)] (\(.duration)ms)"' >> $GITHUB_STEP_SUMMARY
+          if jq empty test-report.json 2>/dev/null; then
+            jq -r '.tests[] | "- [\(.fullTitle)] (\(.duration)ms)"' test-report.json >> $GITHUB_STEP_SUMMARY || true
+          else
+            echo "Relatório JSON inválido" >> $GITHUB_STEP_SUMMARY
+          fi
         fi
 
     - name: 📤 Upload do relatório JSON
@@ -66,15 +70,23 @@ jobs:
 
     - name: ✅ Verificar status dos testes
       run: |
-        if [ -f test-report.json ]; then
-          FAILURES=$(cat test-report.json | jq '.stats.failures // 0')
-          if [ "$FAILURES" != "0" ]; then
-            echo "❌ Testes falharam! Falhas: $FAILURES"
-            exit 1
+        if [ -f test-report.json ] && [ -s test-report.json ]; then
+          if jq empty test-report.json 2>/dev/null; then
+            FAILURES=$(jq '.stats.failures // 0' test-report.json)
+            PASSES=$(jq '.stats.passes // 0' test-report.json)
+            if [ "$FAILURES" != "0" ]; then
+              echo "❌ Testes falharam! Falhas: $FAILURES"
+              exit 1
+            else
+              echo "✅ Todos os testes passaram! Sucessos: $PASSES"
+            fi
           else
-            PASSES=$(cat test-report.json | jq '.stats.passes // 0')
-            echo "✅ Todos os testes passaram! Sucessos: $PASSES"
+            echo "⚠️ Arquivo JSON inválido - testes podem ter falhado"
+            exit 1
           fi
+        else
+          echo "⚠️ Nenhum relatório JSON gerado"
+          exit 1
         fi
 
     - name: 🔔 Notificar sucesso
