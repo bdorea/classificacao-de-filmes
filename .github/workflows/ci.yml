@@ -1,0 +1,86 @@
+name: CI - Testes Automatizados
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * MON-FRI'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: 📥 Checkout do repositório
+      uses: actions/checkout@v4
+
+    - name: 🔧 Configurar Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: 📦 Instalar dependências
+      run: npm ci
+
+    - name: 🧪 Executar testes com Mocha
+      run: npm test -- --reporter json > test-report.json 2>&1
+      continue-on-error: true
+
+    - name: 📊 Gerar relatório de testes legível
+      if: always()
+      run: npm test -- --reporter spec > test-report.txt 2>&1
+      continue-on-error: true
+
+    - name: 📄 Processar relatório JSON
+      if: always()
+      run: |
+        if [ -f test-report.json ]; then
+          echo "## Relatório de Testes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat test-report.json | jq -r '.tests[] | "- [\(.fullTitle)] (\(.duration)ms)"' >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: 📤 Upload do relatório JSON
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report-json-node-${{ matrix.node-version }}
+        path: test-report.json
+        retention-days: 30
+
+    - name: 📤 Upload do relatório legível
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report-txt-node-${{ matrix.node-version }}
+        path: test-report.txt
+        retention-days: 30
+
+    - name: ✅ Verificar status dos testes
+      run: |
+        if [ -f test-report.json ]; then
+          FAILURES=$(cat test-report.json | jq '.stats.failures // 0')
+          if [ "$FAILURES" != "0" ]; then
+            echo "❌ Testes falharam! Falhas: $FAILURES"
+            exit 1
+          else
+            PASSES=$(cat test-report.json | jq '.stats.passes // 0')
+            echo "✅ Todos os testes passaram! Sucessos: $PASSES"
+          fi
+        fi
+
+    - name: 🔔 Notificar sucesso
+      if: success()
+      run: echo "Pipeline executada com sucesso! ✅"
+
+    - name: 🔔 Notificar falha
+      if: failure()
+      run: echo "Pipeline falhou! ❌"
